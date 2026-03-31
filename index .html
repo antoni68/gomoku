@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<title>Gomoku 25x25</title>
+
+<style>
+body {
+    margin: 0;
+    background: #12121a;
+    color: white;
+    font-family: Arial;
+    text-align: center;
+}
+
+h1 { margin-top: 15px; }
+
+#board {
+    display: grid;
+    grid-template-columns: repeat(25, 26px);
+    gap: 2px;
+    justify-content: center;
+    margin: 15px;
+}
+
+.cell {
+    width: 26px;
+    height: 26px;
+    background: #1e1e2f;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.15s;
+    font-size: 14px;
+}
+
+.cell:hover {
+    background: #2f2f55;
+}
+
+.x { color: #00d4ff; }
+.o { color: #ff4d6d; }
+
+.last {
+    outline: 2px solid #fff;
+}
+
+.win {
+    background: #00ff88 !important;
+    color: black !important;
+}
+
+button {
+    padding: 8px 15px;
+    margin: 5px;
+    border: none;
+    border-radius: 6px;
+    background: #00d4ff;
+    cursor: pointer;
+    font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Gomoku 25x25</h1>
+
+<div id="board"></div>
+
+<div id="status">Rândul tău (X)</div>
+
+<button onclick="showLastMove()">Arată ultima mutare</button>
+<button onclick="resetGame()">Restart</button>
+
+<script>
+const SIZE = 25;
+let board = [];
+let gameOver = false;
+let lastMove = null;
+
+const boardDiv = document.getElementById("board");
+const statusDiv = document.getElementById("status");
+
+function createBoard() {
+    boardDiv.innerHTML = "";
+    board = [];
+
+    for (let i = 0; i < SIZE; i++) {
+        board[i] = [];
+        for (let j = 0; j < SIZE; j++) {
+            board[i][j] = "";
+            const cell = document.createElement("div");
+            cell.className = "cell";
+            cell.dataset.r = i;
+            cell.dataset.c = j;
+            cell.onclick = playerMove;
+            boardDiv.appendChild(cell);
+        }
+    }
+}
+
+function playerMove(e) {
+    if (gameOver) return;
+
+    let r = +e.target.dataset.r;
+    let c = +e.target.dataset.c;
+
+    if (board[r][c] !== "") return;
+
+    makeMove(r, c, "X");
+
+    let winLine = checkWin(r, c, "X");
+    if (winLine) {
+        highlightWin(winLine);
+        statusDiv.textContent = "Ai câștigat!";
+        gameOver = true;
+        return;
+    }
+
+    statusDiv.textContent = "Calculatorul gândește...";
+    setTimeout(aiMove, 150);
+}
+
+function aiMove() {
+    let bestScore = -Infinity;
+    let move = null;
+
+    for (let i = 0; i < SIZE; i++) {
+        for (let j = 0; j < SIZE; j++) {
+            if (board[i][j] === "") {
+                let score = evaluateMove(i, j, "O") + evaluateMove(i, j, "X") * 0.9;
+
+                if (score > bestScore) {
+                    bestScore = score;
+                    move = {i, j};
+                }
+            }
+        }
+    }
+
+    if (!move) return;
+
+    makeMove(move.i, move.j, "O");
+
+    let winLine = checkWin(move.i, move.j, "O");
+    if (winLine) {
+        highlightWin(winLine);
+        statusDiv.textContent = "Calculatorul a câștigat!";
+        gameOver = true;
+        return;
+    }
+
+    statusDiv.textContent = "Rândul tău (X)";
+}
+
+function evaluateMove(r, c, player) {
+    return (
+        scoreDir(r,c,1,0,player) +
+        scoreDir(r,c,0,1,player) +
+        scoreDir(r,c,1,1,player) +
+        scoreDir(r,c,1,-1,player)
+    );
+}
+
+function scoreDir(r,c,dr,dc,p) {
+    let count = 1;
+    let open = 0;
+
+    for (let d=-1; d<=1; d+=2) {
+        let i=r+dr*d, j=c+dc*d;
+
+        while(i>=0 && i<SIZE && j>=0 && j<SIZE && board[i][j]===p){
+            count++;
+            i+=dr*d; j+=dc*d;
+        }
+
+        if (i>=0 && i<SIZE && j>=0 && j<SIZE && board[i][j]==="") open++;
+    }
+
+    if (count >= 5) return 100000;
+    if (count === 4 && open === 2) return 10000;
+    if (count === 4) return 4000;
+    if (count === 3 && open === 2) return 1000;
+    if (count === 3) return 200;
+    if (count === 2) return 50;
+
+    return 10;
+}
+
+function makeMove(r,c,p){
+    board[r][c]=p;
+    lastMove = {r,c};
+
+    let idx = r*SIZE+c;
+    let cell = boardDiv.children[idx];
+
+    document.querySelectorAll(".last").forEach(e=>e.classList.remove("last"));
+
+    cell.textContent=p;
+    cell.classList.add(p.toLowerCase());
+    cell.classList.add("last");
+}
+
+function showLastMove() {
+    if (!lastMove) return;
+
+    let idx = lastMove.r * SIZE + lastMove.c;
+    let cell = boardDiv.children[idx];
+
+    cell.style.transform = "scale(1.5)";
+    setTimeout(()=>cell.style.transform="scale(1)", 400);
+}
+
+function checkWin(r,c,p){
+    return (
+        getLine(r,c,1,0,p) ||
+        getLine(r,c,0,1,p) ||
+        getLine(r,c,1,1,p) ||
+        getLine(r,c,1,-1,p)
+    );
+}
+
+function getLine(r,c,dr,dc,p){
+    let line = [[r,c]];
+
+    for (let d=-1; d<=1; d+=2){
+        let i=r+dr*d, j=c+dc*d;
+
+        while(i>=0 && i<SIZE && j>=0 && j<SIZE && board[i][j]===p){
+            if (d===-1) line.unshift([i,j]);
+            else line.push([i,j]);
+            i+=dr*d; j+=dc*d;
+        }
+    }
+
+    return line.length === 5 ? line : null;
+}
+
+function highlightWin(line){
+    for (let [r,c] of line){
+        let idx = r*SIZE+c;
+        boardDiv.children[idx].classList.add("win");
+    }
+}
+
+function resetGame(){
+    gameOver=false;
+    lastMove=null;
+    statusDiv.textContent="Rândul tău (X)";
+    createBoard();
+}
+
+createBoard();
+</script>
+
+</body>
+</html>
