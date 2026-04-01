@@ -65,6 +65,29 @@ button {
 </head>
 
 <body>
+<div id="panel" style="background:#111;color:white;padding:10px;font-family:Arial">
+
+<h3>Game Panel</h3>
+
+<button onclick="createRoom()">Create Room</button>
+
+<div id="rooms"></div>
+
+<hr>
+
+<div id="leaderboard"></div>
+
+<hr>
+
+<div>
+<input id="chatInput" placeholder="chat..." />
+<button onclick="sendChat()">Send</button>
+<div id="chatBox"></div>
+</div>
+
+<hr>
+
+</div>
 <h2>Rooms</h2>
 
 <button onclick="createRoom()">Create Room</button>
@@ -292,6 +315,82 @@ function renderRooms() {
 
 function joinRoom(id) {
   alert("Ai intrat în room!");
+}
+/* SIMPLE PANEL SYSTEM */
+
+let rooms = [];
+
+function createRoom(){
+
+const room = {
+name:"Room "+(rooms.length+1),
+time:10
+};
+
+rooms.push(room);
+
+renderRooms();
+}
+
+function renderRooms(){
+
+const r = document.getElementById("rooms");
+
+r.innerHTML="";
+
+rooms.forEach(room=>{
+
+const div=document.createElement("div");
+
+div.innerHTML =
+room.name+
+" | "+room.time+"s "+
+"<button onclick='alert(\"joined\")'>join</button>";
+
+r.appendChild(div);
+
+});
+
+}
+
+/* LEADERBOARD */
+
+let stats = JSON.parse(localStorage.getItem("stats")) || {
+wins:0,
+loss:0,
+draw:0
+};
+
+function updateLeaderboard(){
+
+document.getElementById("leaderboard").innerHTML =
+"<b>Leaderboard</b><br>"+
+"Wins: "+stats.wins+
+" | Losses: "+stats.loss+
+" | Draws: "+stats.draw;
+
+}
+
+updateLeaderboard();
+
+/* CHAT */
+
+function sendChat(){
+
+const input=document.getElementById("chatInput");
+
+const msg=input.value;
+
+if(msg==="") return;
+
+const div=document.createElement("div");
+
+div.innerText="You: "+msg;
+
+document.getElementById("chatBox").appendChild(div);
+
+input.value="";
+
 }
 </script>
 
