@@ -1,6 +1,52 @@
 <!DOCTYPE html>
 <html lang="ro">
 <head>
+<style>
+
+body{
+background:#0f172a;
+color:white;
+font-family:Arial;
+text-align:center;
+}
+
+h1{
+margin-top:10px;
+}
+
+#panel{
+background:#1e293b;
+padding:15px;
+border-radius:10px;
+width:90%;
+max-width:900px;
+margin:auto;
+margin-bottom:20px;
+}
+
+button{
+background:#38bdf8;
+border:none;
+padding:8px 14px;
+border-radius:6px;
+cursor:pointer;
+margin:5px;
+font-weight:bold;
+}
+
+button:hover{
+background:#0ea5e9;
+}
+
+#chatBox{
+background:#020617;
+height:120px;
+overflow:auto;
+padding:5px;
+border-radius:6px;
+}
+
+</style>
 <meta charset="UTF-8">
 <title>Gomoku 25x25</title>
 
@@ -65,6 +111,28 @@ button {
 </head>
 
 <body>
+<div id="panel">
+
+<h2>Gomoku Online</h2>
+
+<button onclick="createRoom()">Create Room</button>
+
+<div id="rooms"></div>
+
+<hr>
+
+<div id="leaderboard"></div>
+
+<hr>
+
+<div>
+<input id="chatInput" placeholder="chat message"/>
+<button onclick="sendChat()">Send</button>
+
+<div id="chatBox"></div>
+</div>
+
+</div>
 <div id="panel" style="background:#111;color:white;padding:10px;font-family:Arial">
 
 <h3>Game Panel</h3>
@@ -386,6 +454,68 @@ if(msg==="") return;
 const div=document.createElement("div");
 
 div.innerText="You: "+msg;
+
+document.getElementById("chatBox").appendChild(div);
+
+input.value="";
+
+}
+/* LEADERBOARD SYSTEM */
+
+let stats = JSON.parse(localStorage.getItem("gomokuStats")) || {
+wins:0,
+losses:0,
+draws:0
+};
+
+function updateLeaderboard(){
+
+document.getElementById("leaderboard").innerHTML =
+"<b>Leaderboard</b><br>"+
+"Wins: "+stats.wins+
+" | Losses: "+stats.losses+
+" | Draws: "+stats.draws;
+
+}
+
+function winGame(){
+
+stats.wins++;
+saveStats();
+
+}
+
+function loseGame(){
+
+stats.losses++;
+saveStats();
+
+}
+
+function drawGame(){
+
+stats.draws++;
+saveStats();
+
+}
+
+function saveStats(){
+
+localStorage.setItem("gomokuStats",JSON.stringify(stats));
+updateLeaderboard();
+
+}
+
+updateLeaderboard();
+function sendChat(){
+
+const input=document.getElementById("chatInput");
+
+if(input.value==="") return;
+
+const div=document.createElement("div");
+
+div.innerText="You: "+input.value;
 
 document.getElementById("chatBox").appendChild(div);
 
