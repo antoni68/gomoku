@@ -65,7 +65,13 @@ button {
 </head>
 
 <body>
+<h2>Rooms</h2>
 
+<button onclick="createRoom()">Create Room</button>
+
+<div id="roomsList"></div>
+
+<hr>
 <h1>Gomoku 25x25</h1>
 
 <div id="board"></div>
@@ -254,6 +260,39 @@ function resetGame(){
 }
 
 createBoard();
+let rooms = [];
+
+function createRoom() {
+  const room = {
+    id: Date.now(),
+    name: "Room " + (rooms.length + 1),
+    timePerMove: 10,
+    timeBank: 60
+  };
+
+  rooms.push(room);
+  renderRooms();
+}
+
+function renderRooms() {
+  const list = document.getElementById("roomsList");
+  list.innerHTML = "";
+
+  rooms.forEach(room => {
+    const div = document.createElement("div");
+
+    div.innerHTML =
+      "<b>" + room.name + "</b><br>" +
+      "Time: " + room.timePerMove + "s | Bank: " + room.timeBank + "s<br>" +
+      "<button onclick='joinRoom(" + room.id + ")'>Join</button><hr>";
+
+    list.appendChild(div);
+  });
+}
+
+function joinRoom(id) {
+  alert("Ai intrat în room!");
+}
 </script>
 
 </body>
